@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onepercent | Sensor Data Aggregation System</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- PROJECT BRANDING TOP BAR -->
+        <div class="branding-bar">
+            <div class="team-badge">Team Onepercent</div>
+            <div class="comp-badge">Q-eHACK 2026</div>
+        </div>
+
+        <!-- GLOBAL HEADER -->
+        <header>
+            <div class="title-area">
+                <h1>QNX <span class="accent">ADAS</span>: Sensor Data Aggregation System</h1>
+                <div class="status-indicator">
+                    <span class="blinking-dot"></span> System Online <span id="current-ip"></span>
+                </div>
+            </div>
+            <div class="version-tabs">
+                <button class="tab-btn active" id="tab-v1">V1: Basic Threads</button>
+                <button class="tab-btn" id="tab-v2">V2: Active IPC System</button>
+                <button class="tab-btn" id="tab-v3">V3: 8-Core Scaled Zonal</button>
+            </div>
+        </header>
+
+        <main>
+            <!-- ============================================== -->
+            <!-- VERSION 1: POSIX THREADS & MUTEXES             -->
+            <!-- ============================================== -->
+            <div id="layout-v1" class="layout-view active">
+                <div class="top-row">
+                    <!-- V1 Custom Data Pipeline -->
+                    <section class="card pipeline-card">
+                        <h2>Concurrency Architecture <span class="accent">[ Version 1 ]</span></h2>
+                        <div class="v1-textbook-diagram">
+                            
+                            <!-- Left Side: Producer Threads -->
+                            <div class="thread-group left">
+                                <div class="thread-wrapper">
+                                    <div class="node-box sensor" id="v1-s1">Thread 1 (S1)</div>
+                                    <div class="wire" id="wire-s1"></div>
+                                </div>
+                                <div class="thread-wrapper">
+                                    <div class="node-box sensor" id="v1-s2">Thread 2 (S2)</div>
+                                    <div class="wire" id="wire-s2"></div>
+                                </div>
+                                <div class="thread-wrapper">
+                                    <div class="node-box sensor" id="v1-s3">Thread 3 (S3)</div>
+                                    <div class="wire" id="wire-s3"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Center: Mutex Lock System -->
+                            <div class="mutex-system-box" id="v1-mutex-box">
+                                <div class="mutex-title" id="v1-lock-icon">Mutex Lock System (UNLOCKED)</div>
+                                
+                                <!-- The internal shared resource -->
+                                <div class="shared-resource">
+                                    <div class="resource-title">Shared Resource (Buffer - LIFO)</div>
+                                    <div class="buffer-array">
+                                        <div class="buf-slot" id="v1-b0"></div>
+                                        <div class="buf-slot" id="v1-b1"></div>
+                                        <div class="buf-slot" id="v1-b2"></div>
+                                        <div class="buf-slot" id="v1-b3"></div>
+                                        <div class="buf-slot" id="v1-b4"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Side: Consumer Thread -->
+                            <div class="thread-group right">
+                                <div class="thread-wrapper">
+                                    <div class="wire" id="wire-agg"></div>
+                                    <div class="node-box aggregator" id="v1-agg">Thread 4 (Aggregator)</div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </section>
+
+                    <!-- V1 Custom Profiler -->
+                    <section class="card profiler-card">
+                        <h2>Kernel Profiler (V1 Threads)</h2>
+                        <div class="profiler-stats">
+                            <div class="stat-row">
+                                <span class="stat-label">Active Threads</span>
+                                <span class="stat-val">5 (3xS, 1xA, 1xL)</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Mutex Contentions</span>
+                                <span class="stat-val" id="prof-v1-contention">0</span>
+                            </div>
+                            <div class="stat-row highlight" style="border-top:1px solid #334155; padding-top:10px; margin-top:5px;">
+                                <span class="stat-label">Buffer Utilization</span>
+                                <span class="stat-val" id="prof-v1-util">0%</span>
+                            </div>
+                        </div>
+
+                        <!-- Live Latency Chart -->
+                        <div style="margin-top: 20px; border-top: 2px dashed #334155; padding-top: 15px;">
+                            <h3 style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 10px; text-transform: uppercase;">Aggregator Processing Latency</h3>
+                            <div style="position: relative; height: 150px; width: 100%;">
+                                <canvas id="latencyChart"></canvas>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <div id="layout-v2" class="layout-view hidden">
+                <div class="top-row">
+                    <section class="card pipeline-card">
+                        <h2>Client-Server IPC Architecture & Priority Inheritance <span class="accent">[ Version 2 ]</span></h2>
+                        <div class="v2-ipc-diagram">
+                            
+                            <!-- Left: Client Threads & Priorities -->
+                            <div class="client-column">
+                                <div class="ipc-node-wrapper">
+                                    <div class="priority-meter">
+                                        <div class="p-fill" style="height: 90%;"><span>24</span></div>
+                                    </div>
+                                    <div class="node-box sensor" id="v2-c1">LiDAR / Radar Client</div>
+                                    <div class="envelope" id="env-1">✉️ MsgSend</div>
+                                </div>
+                                <div class="ipc-node-wrapper">
+                                    <div class="priority-meter">
+                                        <div class="p-fill" style="height: 75%;"><span>20</span></div>
+                                    </div>
+                                    <div class="node-box sensor" id="v2-c2">Camera Client</div>
+                                    <div class="envelope" id="env-2">✉️ MsgSend</div>
+                                </div>
+                                <div class="ipc-node-wrapper">
+                                    <div class="priority-meter">
+                                        <div class="p-fill" style="height: 30%;"><span>10</span></div>
+                                    </div>
+                                    <div class="node-box sensor" id="v2-c3" style="border-color:#eab308; color:#fff;">Ultrasonic Client</div>
+                                    <div class="envelope" id="env-3">✉️ MsgSend</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Center: The Channel / Bus -->
+                            <div class="ipc-bus">
+                                <div class="bus-label">CHID IPC Channel</div>
+                                <div class="bus-line"></div>
+                            </div>
+
+                            <!-- Right: Server Thread -->
+                            <div class="server-column" style="flex-grow: 1; margin-left: 20px;">
+                                <div style="display:flex; justify-content:center; align-items:flex-end;">
+                                    <div class="server-priority-box">
+                                        <div class="sp-title">Server Priority</div>
+                                        <div class="priority-meter large">
+                                            <div class="p-fill" id="v2-server-priority-fill" style="height: 38%; background: var(--text-muted);"><span id="v2-server-priority-text">10</span></div>
+                                        </div>
+                                        <div class="pi-label" id="pi-label">Waiting...</div>
+                                        <div class="node-box server-node" id="v2-server" style="margin-top:10px;">
+                                            Fusion Server<br><span style="font-size:0.7rem; font-weight:normal;">[Blocked]</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </section>
+
+                    <!-- V2 Custom Profiler Box -->
+                    <section class="card profiler-card">
+                        <h2>System Profiler (V2 IPC)</h2>
+                        <div style="margin-top: 10px; border-top: 2px dashed #334155; padding-top: 15px;">
+                            <h3 style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 20px; text-transform: uppercase;">IPC Channel Throughput</h3>
+                            <div style="position: relative; height: 180px; width: 100%;">
+                                <canvas id="throughputChart"></canvas>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- VERSION 3: 8-CORE ZONAL                        -->
+            <!-- ============================================== -->
+            <div id="layout-v3" class="layout-view hidden">
+                <div class="v3-grid">
+                    <!-- Column 1: Multi-Core Affinity Heatmap -->
+                    <section class="card affinity-card">
+                        <h2>SMP Core Heatmap <span class="accent">[ 8-Core Thread Affinity ]</span></h2>
+                        <div class="core-grid" id="v3-core-grid">
+                            <!-- Cores 0-7 will be injected here or defined manually -->
+                            <div class="core-node" id="core-0"><div class="core-label">CORE 0</div><div class="core-load"><div class="fill"></div></div><div class="core-task">Kernel</div></div>
+                            <div class="core-node" id="core-1"><div class="core-label">CORE 1</div><div class="core-load"><div class="fill"></div></div><div class="core-task">Fusion</div></div>
+                            <div class="core-node" id="core-2"><div class="core-label">CORE 2</div><div class="core-load"><div class="fill"></div></div><div class="core-task">LiDAR</div></div>
+                            <div class="core-node" id="core-3"><div class="core-label">CORE 3</div><div class="core-load"><div class="fill"></div></div><div class="core-task">Camera</div></div>
+                            <div class="core-node" id="core-4"><div class="core-label">CORE 4</div><div class="core-load"><div class="fill"></div></div><div class="core-task">Radar</div></div>
+                            <div class="core-node" id="core-5"><div class="core-label">CORE 5</div><div class="core-load"><div class="fill"></div></div><div class="core-task">Zonal F</div></div>
+                            <div class="core-node" id="core-6"><div class="core-label">CORE 6</div><div class="core-load"><div class="fill"></div></div><div class="core-task">Zonal R</div></div>
+                            <div class="core-node" id="core-7"><div class="core-label">CORE 7</div><div class="core-load"><div class="fill"></div></div><div class="core-task">HMI</div></div>
+                        </div>
+                        <div class="affinity-legend">
+                            <span><i class="dot safety"></i> Safety Critical</span>
+                            <span><i class="dot processing"></i> Data Processing</span>
+                            <span><i class="dot idle"></i> System Idle</span>
+                        </div>
+                    </section>
+
+                    <!-- Column 2: Zonal Flow Architecture -->
+                    <section class="card zonal-card">
+                        <h2>Hierarchical Zonal Map <span class="accent">[ 100+ Sensors ]</span></h2>
+                        <div class="zonal-map-container">
+                            <!-- Zonal Clusters -->
+                            <div class="zone-cluster" id="zone-front">
+                                <div class="zone-node">Front Zone</div>
+                                <div class="sensor-dots">
+                                    <span class="s-dot"></span><span class="s-dot"></span><span class="s-dot"></span><span class="s-dot"></span>
+                                </div>
+                            </div>
+                            
+                            <div class="central-hpc" id="central-hpc">
+                                <div class="hpc-core">HPC Central Fusion</div>
+                                <div class="pulse-ring"></div>
+                            </div>
+
+                            <div class="zone-cluster" id="zone-rear">
+                                <div class="zone-node">Rear Zone</div>
+                                <div class="sensor-dots">
+                                    <span class="s-dot"></span><span class="s-dot"></span><span class="s-dot"></span><span class="s-dot"></span>
+                                </div>
+                            </div>
+
+                            <div class="zone-cluster" id="zone-cabin">
+                                <div class="zone-node">Cabin Zone</div>
+                                <div class="sensor-dots">
+                                    <span class="s-dot"></span><span class="s-dot"></span>
+                                </div>
+                            </div>
+
+                            <!-- Data Flow Wires (SVG or CSS) -->
+                            <div class="zonal-wire wire-f"></div>
+                            <div class="zonal-wire wire-r"></div>
+                            <div class="zonal-wire wire-c"></div>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="v3-grid pulse-row">
+                    <!-- Column 3: Pulse Graph & Watchdog -->
+                    <section class="card pulse-card">
+                        <div class="card-header-flex">
+                            <h2>Kernel Pulse Monitor <span class="accent">[ Watchdog ]</span></h2>
+                            <div class="watchdog-status" id="watchdog-ui">STATUS: OPTIMAL</div>
+                        </div>
+                        <div class="pulse-graph-container">
+                            <canvas id="pulseChart"></canvas>
+                        </div>
+                        <div class="pulse-stats">
+                            <div class="p-stat">Hearbeat: <span id="v3-pulse-rate">60</span> bpm</div>
+                            <div class="p-stat">IPC Type: <span class="accent">Asynch Pulse</span></div>
+                        </div>
+                    </section>
+
+                    <!-- Column 4: Interactive Fault Injection -->
+                    <section class="card fault-card">
+                        <h2>Fault Injection <span class="accent">[ Test Safety ]</span></h2>
+                        <div class="fault-controls">
+                            <button class="fault-btn" onclick="triggerFault('front')">Drop Front Zone</button>
+                            <button class="fault-btn" onclick="triggerFault('rear')">Drop Rear Zone</button>
+                            <button class="reset-btn" onclick="resetFaults()">Reset System</button>
+                        </div>
+                        <p class="fault-desc">Dropping a zone stops its 10Hz Heartbeat Pulses. Watch the Kernel Watchdog detect the failure and trigger Fail-Safe (AEB Disable).</p>
+                    </section>
+                </div>
+
+                <div class="v3-stats-row">
+                    <section class="card mini-card">
+                        <h3>Zonal Throughput</h3>
+                        <div class="big-val" id="v3-throughput">1.2 GB/s</div>
+                    </section>
+                    <section class="card mini-card">
+                        <h3>Interrupt Latency</h3>
+                        <div class="big-val" id="v3-latency">4.2 μs</div>
+                    </section>
+                    <section class="card mini-card">
+                        <h3>Health Status</h3>
+                        <div class="big-val status-ok" id="v3-status">OPTIMAL</div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- GLOBAL BOTTOM SECTION (Terminal)               -->
+            <!-- ============================================== -->
+            <div class="bottom-row" style="margin-top:20px;">
+                <!-- Live Console Terminal -->
+                <section class="card terminal-card" style="grid-column: 1 / -1;">
+                    <h2>Live Console <span class="sub-title">(Auto-detecting Version UDP)</span></h2>
+                    <div class="terminal-window" id="terminal">
+                        <!-- Logs will be inserted here dynamically -->
+                        <div class="log-line system-msg">> Multi-Layout System Loaded... Waiting for QNX...</div>
+                    </div>
+                </section>
+            </div>
+        </main>
+        
+        <footer>
+            <div class="footer-content">
+                <span class="f-item">Build: v3.4.1-final</span>
+                <span class="f-item separator">|</span>
+                <span class="f-item">Powered by QNX Neutrino RTOS</span>
+                <span class="f-item separator">|</span>
+                <span class="f-item accent">Q-eHACK 2026 COMPETITION ENTRY</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Socket.io Library -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
